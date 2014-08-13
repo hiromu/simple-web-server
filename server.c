@@ -3,9 +3,9 @@
 #include <string.h>
 #include <time.h>
 
-#define METHOD_LEN 4
+#define METHOD_LEN 8
 #define URI_LEN 256
-#define VERSION_LEN 8
+#define VERSION_LEN 16
 #define HEADER_LEN 4096
 
 extern char *read_until(char *buf, size_t len, char *terminator);
