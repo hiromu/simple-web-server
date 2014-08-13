@@ -48,7 +48,7 @@ void http_server(void) {
 	ret = read_until(version, VERSION_LEN + 2, "\r\n");
 
 	// HTTP versionが正しく送られてこなければ400エラーを返す
-	if (ret == NULL || ret == &version[VERSION_LEN + 1]) {
+	if (ret == NULL || ret == &version[VERSION_LEN + 2]) {
 		response_header(400, "Bad Request", 0, NULL);
 		return;
 	}
@@ -61,10 +61,10 @@ void http_server(void) {
 
 	// URIに?が含まれていれば，パラメータを抽出
 	char *param = strchr(uri, '?');
-	if (param != NULL) {
-		*param = '\0';
-		param += 1;
-	}
+	if (param == NULL)
+		param = &uri[strlen(uri)];
+	else
+		*(param++) = '\0';
 
 	int status = 0, header_count = 0;
 	char header[HEADER_LEN + 2], **headers = NULL;

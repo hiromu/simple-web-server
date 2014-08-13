@@ -14,9 +14,11 @@ char *read_until(char *buf, size_t len, char *terminator)
 	int i, j, term_len = strlen(terminator);
 
 	for (i = 0; i < len; i++) {
-		buf[i] = getchar();
-		if (buf[i] == EOF)
+		int c = getchar();
+		if (c == EOF)
 			return NULL;
+		else
+			buf[i] = (char)c;
 
 		if (i < term_len - 1)
 			continue;
