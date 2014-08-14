@@ -70,3 +70,57 @@ void response_header(int status, char *message, int header_count, char **headers
 	// 空行でヘッダーの末尾を出力
 	printf("\r\n");
 }
+
+/*
+ * size_t parse_params(char *param, size_t count, char **name, char **value)
+ *
+ * paramをparseしてcount個に達するまでnameに名前を，valueに値を格納した上で
+ * 格納した個数を返す
+ */
+size_t parse_params(char *param, size_t count, char **name, char **value)
+{
+	size_t index = 0;
+	char *ptr = param, *ampersand, *equal;
+
+	while((equal = strchr(ptr, '=')) != NULL) {
+		*equal = '\0';
+		name[index] = ptr;
+		value[index++] = equal + 1;
+
+		if ((ampersand = strchr(equal + 1, '&')) == NULL)
+			break;
+		
+		*ampersand = '\0';
+		ptr = ampersand + 1;
+	}
+
+	return index;
+}
+
+/*
+ * size_t parse_cookies(char *cookie, size_t count, char **name, char **value)
+ *
+ * cookieをparseしてcount個に達するまでnameに名前を，valueに値を格納した上で
+ * 格納した個数を返す
+ */
+size_t parse_cookies(char *cookie, size_t count, char **name, char **value)
+{
+	size_t index = 0;
+	char *ptr = cookie, *equal, *semicolon;
+
+	while((equal = strchr(ptr, '=')) != NULL) {
+		*equal = '\0';
+		name[index] = ptr;
+		value[index++] = equal + 1;
+
+		if ((semicolon = strchr(equal + 1, ';')) == NULL)
+			break;
+		
+		*semicolon = '\0';
+		ptr = semicolon + 1;
+		while(*ptr == ' ')
+			ptr++;
+	}
+
+	return index;
+}
