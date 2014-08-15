@@ -155,6 +155,8 @@ void get(char *uri, char *param, int header_count, char **headers)
 	fscanf(fp, "%d", &counter);
 	fclose(fp);
 
+	if (strstr(param, "reset=true") != NULL)
+		counter = 0;
 	printf("Counter: %d\r\n", ++counter);
 
 	fp = fopen("counter", "w");
