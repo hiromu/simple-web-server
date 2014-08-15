@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#include <unistd.h>
 
 #define METHOD_LEN 8
 #define URI_LEN 256
@@ -10,6 +11,7 @@
 
 #define PARAMS_SIZE 256
 #define COOKIE_SIZE 256
+#define BUFFER_SIZE 4096
 
 extern char *read_until(char *buf, size_t len, char *terminator);
 extern void response_header(int status, char *message, int header_count, char **headers);
@@ -169,16 +171,6 @@ void get(char *uri, char *param, int header_count, char **headers)
 
 		printf("Welcome admin!\r\n");
 	} else {
-		response_header(200, "OK", 0, NULL);
-	
-		printf("Request method: GET\r\n");
-		printf("Request URI: %s\r\n", uri);
-		printf("Request parameters: %s\r\n", param);
-	
-		printf("Request headers: %d\r\n", header_count);
-		for(i = 0; i < header_count; i++)
-			printf("\t%s\r\n", headers[i]);
-	
 		int counter = 0;
 		FILE *fp;
 	
@@ -192,24 +184,56 @@ void get(char *uri, char *param, int header_count, char **headers)
 			if (strcmp(name[i], "reset") == 0)
 				counter = atoi(value[i]) - 1;
 	
-		printf("Counter: %d\r\n", ++counter);
-	
 		fp = fopen("counter", "w");
-		fprintf(fp, "%d", counter);
+		fprintf(fp, "%d", counter + 1);
 		fclose(fp);
+
+		printf("<html><head><title>Login Page</title></head><body><p>Counter: %d</p><form method='POST'><input type='text' name='user' /><input type='password' name='pass' /><input type='submit' value='Login' /></form></body></html>", counter);
 	}
 }
 
 void post(char *uri, char *param, int header_count, char **headers)
 {
-	int i;
-	response_header(200, "OK", 0, NULL);
+	int i, length, auth = 0;
+	char *response[2];
 
-	printf("Request method: POST\r\n");
-	printf("Request URI: %s\r\n", uri);
-	printf("Request parameters: %s\r\n", param);
+	response[0] = (char *)malloc(sizeof(char) * (strlen(uri) + 11));
+	sprintf(response[0], "Location: %s", uri);
 
-	printf("Request headers: %d\r\n", header_count);
-	for (i = 0; i < header_count; i++)
-		printf("\t%s\r\n", headers[i]);
+	for (i = 0; i < header_count; i++) {
+		char *colon = strchr(headers[i], ':');
+		if (colon == NULL)
+			continue;
+		if (strncmp(headers[i], "Content-Length", (colon++) - headers[i]) != 0)
+			continue;
+
+		while (*colon == ' ')
+			colon++;
+
+		length = atoi(colon) + 1;
+		break;
+	}
+
+	char post_buffer[BUFFER_SIZE + 1];
+	fgets(post_buffer, (length < BUFFER_SIZE)? length: BUFFER_SIZE, stdin);
+
+	char *name[PARAMS_SIZE], *value[PARAMS_SIZE];
+	size_t count = parse_params(post_buffer, PARAMS_SIZE, name, value);
+	for (i = 0; i < count; i++) {
+		if (strcmp(name[i], "user") == 0 && strcmp(value[i], "admin") == 0)
+			auth |= 1;
+		if (strcmp(name[i], "pass") == 0 && strcmp(value[i], "password") == 0)
+			auth |= 2;
+	}
+
+	if (auth == 3) {
+		char cookie[] = "Set-Cookie: admin=true";
+		response[1] = cookie;
+
+		response_header(302, "Found", 2, (char **)response);
+	} else {
+		response_header(302, "Found", 1, (char **)response);
+	}
+
+	free(response[0]);
 }
