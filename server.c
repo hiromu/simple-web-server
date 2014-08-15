@@ -145,7 +145,7 @@ void get(char *uri, char *param, int header_count, char **headers)
 	printf("Request parameters: %s\r\n", param);
 
 	printf("Request headers: %d\r\n", header_count);
-	for(i = 0; i < header_count; i++)
+	for (i = 0; i < header_count; i++)
 		printf("\t%s\r\n", headers[i]);
 }
 
@@ -159,6 +159,6 @@ void post(char *uri, char *param, int header_count, char **headers)
 	printf("Request parameters: %s\r\n", param);
 
 	printf("Request headers: %d\r\n", header_count);
-	for(i = 0; i < header_count; i++)
+	for (i = 0; i < header_count; i++)
 		printf("\t%s\r\n", headers[i]);
 }
