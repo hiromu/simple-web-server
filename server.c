@@ -9,10 +9,12 @@
 #define HEADER_LEN 4096
 
 #define PARAMS_SIZE 256
+#define COOKIE_SIZE 256
 
 extern char *read_until(char *buf, size_t len, char *terminator);
 extern void response_header(int status, char *message, int header_count, char **headers);
 extern size_t parse_params(char *param, size_t count, char **name, char **value);
+extern size_t parse_cookies(char *cookie, size_t count, char **name, char **value);
 
 void get(char *uri, char *param, int header_count, char **headers);
 void post(char *uri, char *param, int header_count, char **headers);
@@ -140,35 +142,62 @@ void http_server(void) {
 
 void get(char *uri, char *param, int header_count, char **headers)
 {
-	int i;
-	response_header(200, "OK", 0, NULL);
+	int i, j, admin = 0;
 
-	printf("Request method: GET\r\n");
-	printf("Request URI: %s\r\n", uri);
-	printf("Request parameters: %s\r\n", param);
+	for (i = 0; i < header_count; i++) {
+		char *colon = strchr(headers[i], ':');
+		if (colon == NULL)
+			continue;
+		if (strncmp(headers[i], "Cookie", colon - headers[i]) != 0)
+			continue;
 
-	printf("Request headers: %d\r\n", header_count);
-	for (i = 0; i < header_count; i++)
-		printf("\t%s\r\n", headers[i]);
+		while (*colon == ' ')
+			colon++;
 
-	int counter = 0;
-	FILE *fp;
+		char *name[COOKIE_SIZE], *value[COOKIE_SIZE];
+		size_t count = parse_cookies(colon, COOKIE_SIZE, name, value);
+		for (j = 0; j < count; j++)
+			if (strcmp(name[j], "admin") == 0 && strcmp(value[j], "true") == 0)
+				admin = 1;
 
-	fp = fopen("counter", "r");
-	fscanf(fp, "%d", &counter);
-	fclose(fp);
+		if (admin)
+			break;
+	}
 
-	char *name[PARAMS_SIZE], *value[PARAMS_SIZE];
-	size_t count = parse_params(param, PARAMS_SIZE, name, value);
-	for (i = 0; i < count; i++) 
-		if (strcmp(name[i], "reset") == 0)
-			counter = atoi(value[i]) - 1;
+	if (admin) {
+		response_header(200, "OK", 0, NULL);
 
-	printf("Counter: %d\r\n", ++counter);
-
-	fp = fopen("counter", "w");
-	fprintf(fp, "%d", counter);
-	fclose(fp);
+		printf("Welcome admin!\r\n");
+	} else {
+		response_header(200, "OK", 0, NULL);
+	
+		printf("Request method: GET\r\n");
+		printf("Request URI: %s\r\n", uri);
+		printf("Request parameters: %s\r\n", param);
+	
+		printf("Request headers: %d\r\n", header_count);
+		for(i = 0; i < header_count; i++)
+			printf("\t%s\r\n", headers[i]);
+	
+		int counter = 0;
+		FILE *fp;
+	
+		fp = fopen("counter", "r");
+		fscanf(fp, "%d", &counter);
+		fclose(fp);
+	
+		char *name[PARAMS_SIZE], *value[PARAMS_SIZE];
+		size_t count = parse_params(param, PARAMS_SIZE, name, value);
+		for (i = 0; i < count; i++) 
+			if (strcmp(name[i], "reset") == 0)
+				counter = atoi(value[i]) - 1;
+	
+		printf("Counter: %d\r\n", ++counter);
+	
+		fp = fopen("counter", "w");
+		fprintf(fp, "%d", counter);
+		fclose(fp);
+	}
 }
 
 void post(char *uri, char *param, int header_count, char **headers)
