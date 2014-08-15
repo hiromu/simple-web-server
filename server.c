@@ -147,6 +147,19 @@ void get(char *uri, char *param, int header_count, char **headers)
 	printf("Request headers: %d\r\n", header_count);
 	for(i = 0; i < header_count; i++)
 		printf("\t%s\r\n", headers[i]);
+
+	int counter = 0;
+	FILE *fp;
+
+	fp = fopen("counter", "r");
+	fscanf(fp, "%d", &counter);
+	fclose(fp);
+
+	printf("Counter: %d\r\n", ++counter);
+
+	fp = fopen("counter", "w");
+	fprintf(fp, "%d", counter);
+	fclose(fp);
 }
 
 void post(char *uri, char *param, int header_count, char **headers)
