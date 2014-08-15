@@ -8,8 +8,11 @@
 #define VERSION_LEN 16
 #define HEADER_LEN 4096
 
+#define PARAMS_SIZE 256
+
 extern char *read_until(char *buf, size_t len, char *terminator);
 extern void response_header(int status, char *message, int header_count, char **headers);
+extern size_t parse_params(char *param, size_t count, char **name, char **value);
 
 void get(char *uri, char *param, int header_count, char **headers);
 void post(char *uri, char *param, int header_count, char **headers);
@@ -155,8 +158,12 @@ void get(char *uri, char *param, int header_count, char **headers)
 	fscanf(fp, "%d", &counter);
 	fclose(fp);
 
-	if(strstr(param, "reset=true") != NULL)
-		counter = 0;
+	char *name[PARAMS_SIZE], *value[PARAMS_SIZE];
+	size_t count = parse_params(param, PARAMS_SIZE, name, value);
+	for (i = 0; i < count; i++) 
+		if (strcmp(name[i], "reset") == 0)
+			counter = atoi(value[i]) - 1;
+
 	printf("Counter: %d\r\n", ++counter);
 
 	fp = fopen("counter", "w");
