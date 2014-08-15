@@ -82,7 +82,7 @@ size_t parse_params(char *param, size_t count, char **name, char **value)
 	size_t index = 0;
 	char *ptr = param, *ampersand, *equal;
 
-	while((equal = strchr(ptr, '=')) != NULL) {
+	while ((equal = strchr(ptr, '=')) != NULL) {
 		*equal = '\0';
 		name[index] = ptr;
 		value[index++] = equal + 1;
@@ -108,7 +108,7 @@ size_t parse_cookies(char *cookie, size_t count, char **name, char **value)
 	size_t index = 0;
 	char *ptr = cookie, *equal, *semicolon;
 
-	while((equal = strchr(ptr, '=')) != NULL) {
+	while ((equal = strchr(ptr, '=')) != NULL) {
 		*equal = '\0';
 		name[index] = ptr;
 		value[index++] = equal + 1;
@@ -118,7 +118,7 @@ size_t parse_cookies(char *cookie, size_t count, char **name, char **value)
 		
 		*semicolon = '\0';
 		ptr = semicolon + 1;
-		while(*ptr == ' ')
+		while (*ptr == ' ')
 			ptr++;
 	}
 
